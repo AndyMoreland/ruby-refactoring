@@ -1,0 +1,28 @@
+(defun extract-into-method (start end)
+  (save-excursion (let ((method-name (read-from-minibuffer "Name for method: "))
+                        (name (read-from-minibuffer "Name for var: "))
+                        (regexp (read-from-minibuffer "Regexp for var: ")))
+                    (goto-char start) ; Extract new method into kill ring
+                    (setq output (concat "def " method-name "(" name ") \n" (replace-regexp-in-string regexp name (buffer-substring start end)) "\nend"))
+                    (kill-region start end)
+                    (kill-new output)
+                    (insert (concat method-name "(" regexp ")"))
+                    (indent-for-tab-command))))
+
+(defun output-after-current-method-or-class ()
+  (save-excursion (search-backward "def") ; Format & insert new method
+                   (forward-char 1)
+                   (ruby-end-of-block)
+                   (end-of-line)
+                   (insert "\n")
+                   (yank)
+                   (ruby-beginning-of-block)
+                   (indent-for-tab-command)
+                   (ruby-end-of-block)
+                   (beginning-of-line)
+                   (ruby-indent-line)))
+
+(defun refactor-method (start end)
+  (interactive "r")
+  (extract-into-method start end)
+  (output-after-current-method-or-class))
